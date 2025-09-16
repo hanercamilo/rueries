@@ -1,4 +1,3 @@
-// api/proxy.js
 export default async function handler(req, res) {
   const { url } = req.query;
   if (!url) {
@@ -9,15 +8,24 @@ export default async function handler(req, res) {
     const response = await fetch(url, {
       method: req.method,
       headers: {
-        ...req.headers,
-        host: undefined,
+        ...req.headers, // 🔥 reenvía los headers que mandó tu cliente
+        host: undefined // evita problemas con el header `host`
       },
-      body: req.method !== "GET" && req.method !== "HEAD" ? req.body : undefined,
+      body:
+        req.method !== "GET" && req.method !== "HEAD"
+          ? JSON.stringify(req.body)
+          : undefined,
     });
 
-    const text = await response.text();
+    const contentType = response.headers.get("content-type");
+    const buffer = await response.arrayBuffer(); // soporta JSON, binarios, etc.
+
     res.setHeader("Access-Control-Allow-Origin", "*");
-    res.status(response.status).send(text);
+    if (contentType) {
+      res.setHeader("Content-Type", contentType);
+    }
+
+    res.status(response.status).send(Buffer.from(buffer));
   } catch (error) {
     res.status(500).json({ error: "Proxy error", details: error.message });
   }
