@@ -1,12 +1,11 @@
 {
   "builds": [
-    { "src": "assets/**/*", "use": "@vercel/static" },
+    { "src": "index.html", "use": "@vercel/static" },
+    { "src": "assets/**", "use": "@vercel/static" },
     { "src": "api/**/*.js", "use": "@vercel/node" }
   ],
   "routes": [
     { "src": "/api/(.*)", "dest": "/api/$1" },
-    { "src": "/(.*)", "dest": "/assets/$1" }
+    { "src": "/(.*)", "dest": "/$1" }
   ]
 }
-
-
