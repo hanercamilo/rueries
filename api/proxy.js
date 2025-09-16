@@ -4,12 +4,22 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: "Missing url param" });
     }
 
+    // 🔥 Siempre configurar CORS primero
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
+
+    // 🔥 Si es preflight, respondemos sin hacer fetch
+    if (req.method === "OPTIONS") {
+        return res.status(200).end();
+    }
+
     try {
         const response = await fetch(url, {
             method: req.method,
             headers: {
-                ...req.headers, // 🔥 reenvía los headers que mandó tu cliente
-                host: undefined, // evita problemas con el header `host`
+                ...req.headers,
+                host: undefined,
             },
             body:
                 req.method !== "GET" && req.method !== "HEAD"
@@ -19,9 +29,8 @@ export default async function handler(req, res) {
 
         const contentType = response.headers.get("content-type");
         const contentEncoding = response.headers.get("content-encoding");
-        const buffer = await response.arrayBuffer(); // soporta JSON, binarios, etc.
+        const buffer = await response.arrayBuffer();
 
-        res.setHeader("Access-Control-Allow-Origin", "*");
         if (contentType) res.setHeader("Content-Type", contentType);
         if (contentEncoding) res.setHeader("Content-Encoding", contentEncoding);
 
